@@ -112,16 +112,23 @@ class Settings:
     peer_allowlist: frozenset  # 发送对象白名单，为空则不限制
     # 清设备失败/校验未通过后隔多久重试（秒）。写法：45s / 10m / 2h
     kick_retry_s: float = 3600.0
+    # LLM HTTP 请求超时（秒），上游模型慢时可调大，最大 600s
+    llm_timeout: float = 120.0
 
     @staticmethod
     def load(env_file: str | os.PathLike[str] = ".env") -> "Settings":
         _load_dotenv(Path(env_file))
         data_dir = Path(os.environ.get("TAM_DATA_DIR", "./data")).expanduser()
         data_dir.mkdir(parents=True, exist_ok=True)
-        master_key = os.environ.get("TAM_MASTER_KEY", "")
+        master_key = os.environ.get("TAM_MASTER_KEY", "").strip()
         if not master_key:
             raise RuntimeError(
                 "缺少 TAM_MASTER_KEY。请先运行: python -m tam.cli init-key"
+            )
+        if len(master_key) < 32:
+            raise RuntimeError(
+                f"TAM_MASTER_KEY 过短({len(master_key)}字符,需≥32)。"
+                "请删掉 .env 里的错误密钥行,重新运行 setup.py 生成。"
             )
         return Settings(
             data_dir=data_dir,
@@ -136,6 +143,7 @@ class Settings:
             action_max_delay=_float_env("TAM_MAX_DELAY", 25.0),
             auto_kick_hours=_float_env("TAM_AUTO_KICK_HOURS", 24.0),
             kick_retry_s=_duration_env("TAM_KICK_RETRY", 3600.0, minimum=10.0),
+            llm_timeout=max(10.0, min(600.0, _float_env("TAM_LLM_TIMEOUT", 120.0))),
             readonly=os.environ.get("TAM_READONLY", "0").lower() in {"1", "true", "yes"},
             dry_run=os.environ.get("TAM_DRY_RUN", "0").lower() in {"1", "true", "yes"},
             readonly_token=os.environ.get("TAM_READONLY_TOKEN", ""),
