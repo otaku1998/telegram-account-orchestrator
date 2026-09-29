@@ -1,0 +1,38 @@
+{
+  "name": "tao-desktop",
+  "version": "0.3.1",
+  "private": true,
+  "description": "Telegram Account Orchestrator (TAO) desktop client — Electron shell around the TAO web console.",
+  "author": "otaku1998",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "dist": "electron-builder --win nsis",
+    "dist:dir": "electron-builder --dir"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "io.github.otaku1998.tao",
+    "productName": "TAO",
+    "files": [
+      "main.js",
+      "preload.js",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
+    }
+  }
+}

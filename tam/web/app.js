@@ -3162,6 +3162,53 @@ async function bulkTag() {
   refresh();
 }
 
+let pSpinTimer = null;
+function openProfileModal() {
+  if (!sel.size) { toast('请先勾选账号', 'err'); return; }
+  const who = $('#pWho');
+  if (who) who.textContent = '已选 ' + sel.size + ' 个';
+  openModal('mProfile');
+}
+
+function pPreview() {
+  clearTimeout(pSpinTimer);
+  pSpinTimer = setTimeout(async () => {
+    const text = $('#pAbout').value;
+    if (!text.includes('{')) { $('#pSpinN').textContent = '变体数 1'; $('#pSpinPrev').textContent = ''; return; }
+    try {
+      const r = await api('/api/spintax/preview', {method:'POST', body: JSON.stringify({text})});
+      if (!r.ok) { $('#pSpinN').textContent = '语法错误'; $('#pSpinPrev').textContent = r.error || ''; return; }
+      $('#pSpinN').textContent = `变体数 ${r.variants}`;
+      $('#pSpinPrev').textContent = (r.preview || []).join('\n') + (r.warning ? '\n⚠ ' + r.warning : '');
+    } catch (e) { $('#pSpinN').textContent = '预览失败'; }
+  }, 400);
+}
+
+async function bulkProfile() {
+  const ids = [...sel];
+  if (!ids.length) { toast('请先勾选账号', 'err'); return; }
+  const first_name = $('#pFirst').value.trim();
+  const last_name = $('#pLast').value.trim();
+  const about = $('#pAbout').value.trim();
+  if (!first_name && !last_name && !about) { toast('姓名和简介至少填一项', 'err'); return; }
+  if (ids.length > 1 && !await uiConfirm({
+    title: '批量修改资料',
+    message: '将修改这 ' + ids.length + ' 个账号对外可见的姓名 / 简介。\n该操作会立即生效，其它人可见。确认继续？',
+  })) return;
+  const params = {first_name, last_name, about, spintax: $('#pSpin').checked};
+  try {
+    const r = await api('/api/toolbox/profile_set/batch', {
+      method: 'POST',
+      body: JSON.stringify({account_ids: ids, params, concurrency: batchConc(5)}),
+    });
+    closeAll();
+    out(r, true);
+    toast('资料修改完成 · 成功 ' + r.ok + ' / 共 ' + r.total + (r.failed ? '，失败 ' + r.failed : ''),
+          r.failed ? 'err' : 'ok');
+    refresh();
+  } catch (e) { toast('修改失败：' + e.message, 'err'); }
+}
+
 async function deleteTelegram(id) {
   if (!await uiConfirmDanger({
     title: '注销 Telegram 账号',
@@ -3479,6 +3526,50 @@ if (DEMO) {
   probeMode();
   refresh();
 }
+/* ---------- 桌面外壳：侧栏导航 + 主题 ---------- */
+const themeKey = 'tam.theme';
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  const dark = t === 'dark';
+  const icon = $('#themeIcon'); if (icon) icon.textContent = dark ? '☀️' : '🌙';
+  const label = $('#themeLabel'); if (label) label.textContent = dark ? '浅色模式' : '深色模式';
+  const top = $('#themeBtnTop'); if (top) top.textContent = dark ? '☀️' : '🌙';
+}
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem(themeKey, next); } catch (e) {}
+  applyTheme(next);
+}
+(function initTheme() {
+  let t = 'light';
+  try { t = localStorage.getItem(themeKey) || 'light'; } catch (e) {}
+  applyTheme(t);
+})();
+
+/** 侧栏导航：把画板上对应的控件滚动到可视区。 */
+function navTo(widget) {
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.nav === widget));
+  const el = document.querySelector('[data-widget="' + widget + '"]');
+  if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+  if (widget === 'toolbox') loadOps();
+  if (widget === 'ziptools') renderZt();
+  if (widget === 'settings') loadSettings();
+  if (widget === 'tasks') loadTasks();
+  if (widget === 'leads') loadLeads();
+}
+window.addEventListener('scroll', () => {
+  if (document.body.classList.contains('editing')) return;
+  const cards = [...document.querySelectorAll('.board > [data-widget]:not(.whidden)')];
+  let cur = cards[0];
+  const y = window.scrollY + 140;
+  for (const c of cards) { if (c.offsetTop <= y) cur = c; }
+  if (!cur) return;
+  const k = cur.dataset.widget;
+  const map = {accounts: 'accounts', toolbox: 'toolbox', ziptools: 'ziptools', tasks: 'tasks', leads: 'leads', logText: 'logs', logJson: 'logs', settings: 'settings'};
+  const nav = map[k];
+  if (nav) document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.nav === nav));
+}, {passive: true});
+
 /* ---------- 工具箱：把 GAF 那批功能直接作用于库里选中的号 ---------- */
 /* 字段全靠 /api/toolbox/ops 下发的 OP_SPECS 动态渲染，后端加新 op 前端一行都不用改 */
 let TB_OPS = [];

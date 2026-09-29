@@ -12,7 +12,36 @@
 </style>
 </head>
 <body>
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo">✈️</div>
+    <div class="bt"><b>Telegram 账号管理器</b><span>Telegram Account Orchestrator</span></div>
+  </div>
+  <div class="navg">控制台</div>
+  <nav class="nav" id="nav">
+    <button class="on" data-nav="overview" onclick="navTo('overview')"><span class="ic">▤</span> 总览</button>
+    <button data-nav="accounts" onclick="navTo('accounts')"><span class="ic">👤</span> 账号管理</button>
+    <button data-nav="toolbox" onclick="navTo('toolbox')"><span class="ic">🧰</span> 工具箱</button>
+    <button data-nav="ziptools" onclick="navTo('ziptools')"><span class="ic">🗜️</span> ZIP 工具</button>
+    <button data-nav="tasks" onclick="navTo('tasks')"><span class="ic">📋</span> 任务中心</button>
+    <button data-nav="leads" onclick="navTo('leads')"><span class="ic">🎯</span> 线索库</button>
+    <button data-nav="logs" onclick="navTo('logs')"><span class="ic">📜</span> 日志</button>
+    <button data-nav="settings" onclick="navTo('settings')"><span class="ic">⚙️</span> 参数设置</button>
+  </nav>
+  <div class="navg">工具</div>
+  <nav class="nav">
+    <button onclick="runDoctor()"><span class="ic">🩺</span> 一键体检</button>
+    <button onclick="openAiPanel()"><span class="ic">✦</span> AI 助手</button>
+    <button onclick="openHelp()"><span class="ic">❓</span> 帮助</button>
+  </nav>
+  <div class="foot">
+    <button class="themebtn" onclick="toggleTheme()"><span class="ic" id="themeIcon">🌙</span> <span id="themeLabel">深色模式</span></button>
+    <div class="muted">TAO · 自托管</div>
+  </div>
+</aside>
+<div class="app-main" id="appMain">
 <header>
+  <button class="fit navtoggle" onclick="document.body.classList.toggle('nav-open')" title="菜单">☰</button>
   <h1>✈️ Telegram 账号管理器 <span class="pill" id="mode">完整权限</span></h1>
   <span class="sp"></span>
   <input id="token" placeholder="访问令牌（免令牌模式留空）" style="max-width:230px" />
@@ -21,6 +50,7 @@
   <button class="fit write" onclick="hotReload()" title="真实重启后端进程（热重载），进行中的任务会中断">热重载</button>
   <button class="fit" onclick="openAiPanel()" title="AI 对话与权限配置">AI 助手</button>
   <button class="fit" onclick="openErrorLog()" title="服务端与前端错误日志，可导出上报">错误日志</button>
+  <button class="fit" onclick="toggleTheme()" id="themeBtnTop" title="切换浅色 / 深色主题">🌙</button>
   <button class="fit" id="editBtn" onclick="toggleEdit()" title="拖动移位置、拖边缘改大小、点右上角 × 隐藏">编辑布局</button>
   <button class="fit" onclick="openHelp()" title="功能说明与使用文档">帮助</button>
   <button class="fit" onclick="refresh()">刷新</button>
@@ -64,6 +94,7 @@
       <button class="sm write" onclick="bulkOkpay()">OKPay余额</button>
       <button class="sm write" onclick="bulkTerminate()">踢出设备</button>
       <button class="sm write" onclick="bulkTag()">打标签</button>
+      <button class="sm write" onclick="openProfileModal()">改姓名/简介</button>
       <button class="sm write" onclick="bulkExport('pack')">导出号包</button>
       <button class="sm write" onclick="bulkExport('session')">导出.session</button>
       <button class="sm danger write" onclick="bulkRegen()">重生会话</button>
@@ -266,6 +297,7 @@
     <input type="file" id="layFile" accept="application/json,.json" style="display:none" />
   </div>
 </main>
+</div>
 
 
 <!-- 帮助文档 -->
@@ -309,7 +341,7 @@
         <h4 id="h-accounts">账号管理</h4>
         <ul>
           <li><strong>添加账号</strong>：别名、手机号、代理、标签、取码链接等。</li>
-          <li><strong>勾选 + 批量栏</strong>：健康检查、自动登录、发消息、养号、代理体检、OKPay 余额、踢设备、打标签、导出、重生会话、删除等。</li>
+          <li><strong>勾选 + 批量栏</strong>：健康检查、自动登录、发消息、养号、代理体检、OKPay 余额、踢设备、打标签、<strong>改姓名/简介</strong>、导出、重生会话、删除等。</li>
           <li><strong>点开一行</strong>：资料、健康检查、限制检测、设备/会话、登录、清设备、导出、重生、二验状态/重置、退出、删除。</li>
           <li>状态：active 正常、restricted 受限、banned 封禁、unauthorized 未登录/失效等。</li>
           <li>批量操作有<strong>真实进度</strong>（完成数/成功/失败/当前号）；并行与超时见参数面板。</li>
@@ -369,7 +401,8 @@
         </ul>
 
         <h4 id="h-tools">工具箱</h4>
-        <p>对<strong>库内已选账号</strong>批量执行：筛活、限制检测、隐私、筛料、改二验、二验状态/重置、清通讯录/会话、防找回清理、<strong>屏蔽/取消屏蔽用户</strong>、搜索公开群、加群、成员列表、读群消息、踢设备等。危险项会确认。</p>
+          <p>对<strong>库内已选账号</strong>批量执行：筛活、限制检测、隐私、筛料、改二验、二验状态/重置、清通讯录/会话、防找回清理、<strong>改姓名/简介</strong>、<strong>屏蔽/取消屏蔽用户</strong>、搜索公开群、加群、成员列表、读群消息、踢设备等。危险项会确认。</p>
+          <div class="tip">「改姓名/简介」也可在账号列表顶部的批量栏直接点开：一次给多个号设置对外可见的 first/last name 与 about，留空即不改动；支持 <code>{甲|乙}</code> 变体语法，每个号随机取一条，避免资料完全相同被判重。</div>
 
         <h4 id="h-zip">ZIP 工具（不碰库内号）</h4>
         <ul>
@@ -633,6 +666,24 @@
     <button class="sm write" type="button" onclick="qrLoginRefresh()">刷新二维码</button>
     <button class="primary write" type="button" id="qrSubmitPass" style="display:none" onclick="qrLoginSubmitPass()">提交密码</button>
   </div>
+</div>
+
+<!-- 批量修改姓名与简介 -->
+<div class="modal" id="mProfile">
+  <h3>批量修改姓名与个人简介 <span class="muted" id="pWho"></span></h3>
+  <div class="body">
+    <p class="muted">对勾选的账号批量修改<strong>对外可见</strong>的姓名与个人简介。留空的项不会改动。支持 <code>{甲|乙}</code> 变体语法，每个号随机取一条，避免资料完全相同。</p>
+    <label class="f"><span>名（first name）</span><input id="pFirst" placeholder="例如：{Alex|Sam|Chris}" /></label>
+    <label class="f"><span>姓（last name，可选）</span><input id="pLast" placeholder="例如：Taylor" /></label>
+    <label class="f"><span>个人简介（about，最多 255 字）</span><textarea id="pAbout" style="min-height:90px;font-family:inherit;font-size:14px" placeholder="例如：Crypto enthusiast · {web3|web4}" oninput="pPreview()"></textarea></label>
+    <div class="row" style="gap:8px;align-items:center">
+      <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="pSpin" checked style="width:16px;min-height:0" /> 启用变体</label>
+      <span class="sp" style="flex:1"></span>
+      <span class="muted" id="pSpinN">变体数 1</span>
+    </div>
+    <pre id="pSpinPrev" class="muted" style="white-space:pre-wrap;margin:8px 0 0;max-height:120px;min-height:0"></pre>
+  </div>
+  <div class="foot"><button onclick="closeAll()">取消</button><button class="primary write" onclick="bulkProfile()">开始修改</button></div>
 </div>
 
 <!-- 发消息 -->

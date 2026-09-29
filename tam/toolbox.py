@@ -472,6 +472,61 @@ async def op_profile_clear(client: Any, p: dict) -> dict:
     return {"done": done, "errors": errors}
 
 
+async def op_profile_set(client: Any, p: dict) -> dict:
+    """批量修改姓名与个人简介（对外可见）。
+
+    与 op_profile_clear 相反：用于给一批号统一/随机设置 first_name
+    （可选 last_name）和 about（简介）。支持 spintax 文案变体，
+    每个号随机取一条，避免所有号资料完全相同被判重。
+
+    注意：留空表示「该项不改」。想彻底清空简介请用「防找回清理」。
+    """
+    from telethon.tl.functions.account import UpdateProfileRequest
+
+    first_name = str(p.get("first_name") or "").strip()
+    last_name = str(p.get("last_name") or "").strip()
+    about = str(p.get("about") or "").strip()
+    use_spintax = bool(p.get("spintax", True))
+
+    if not first_name and not last_name and not about:
+        raise ToolboxError("姓名和简介至少填一项")
+
+    def _expand(text: str) -> str:
+        if not text:
+            return ""
+        if not use_spintax:
+            return text
+        try:
+            from .spintax import expand
+            return expand(text)
+        except Exception:  # noqa: BLE001 - 变体语法错误时不阻断，按原文发送
+            return text
+
+    first_name = _expand(first_name)[:64]
+    last_name = _expand(last_name)[:64]
+    about = _expand(about)[:255]
+
+    # 只提交真正要改的字段，避免把没填的项清空
+    kwargs: dict[str, Any] = {}
+    if first_name:
+        kwargs["first_name"] = first_name
+    if last_name:
+        kwargs["last_name"] = last_name
+    if about:
+        kwargs["about"] = about
+
+    await client(UpdateProfileRequest(**kwargs))
+
+    me = await client.get_me()
+    return {
+        "ok": True,
+        "first_name": getattr(me, "first_name", None),
+        "last_name": getattr(me, "last_name", None),
+        "about": about,
+        "updated": sorted(kwargs.keys()),
+    }
+
+
 async def op_terminate_others(client: Any, p: dict) -> dict:
     """踢掉其它设备，只留本机。
 
@@ -1323,6 +1378,13 @@ OP_SPECS: list[dict[str, Any]] = [
                  "default": True},
                 {"name": "username", "type": "bool",
                  "label": "清用户名"}]},
+    {"op": "profile_set", "label": "改姓名/简介", "danger": True,
+     "desc": "批量修改对外可见的姓名与个人简介；留空的项不改动",
+     "params": [{"name": "first_name", "type": "str", "label": "名（first name）"},
+                {"name": "last_name", "type": "str", "label": "姓（last name，可选）"},
+                {"name": "about", "type": "textarea", "label": "个人简介（about）"},
+                {"name": "spintax", "type": "bool",
+                 "label": "启用 {a|b} 变体（每个号随机取一条）", "default": True}]},
     {"op": "terminate_others", "label": "踢掉其它设备", "danger": True,
      "desc": "只留本机登录，踢完会回查确认真的踢干净了",
      "params": []},
@@ -1401,6 +1463,7 @@ OPS: dict[str, Callable[[Any, dict], Awaitable[dict]]] = {
     "contacts_clear": op_contacts_clear,
     "dialogs_clear": op_dialogs_clear,
     "profile_clear": op_profile_clear,
+    "profile_set": op_profile_set,
     "terminate_others": op_terminate_others,
     "logout": op_logout,
     "delete_tg_account": op_delete_tg_account,

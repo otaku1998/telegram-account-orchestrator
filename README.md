@@ -497,15 +497,33 @@ python -m tam.cli serve                    # 只跑网页（老命令，没变�
 
 - **AI 助手面板**：右下角 / 顶栏唤出侧栏；OpenAI 兼容 API；权限预设（只读/安全/标准/完整）与逐项工具开关；账号范围限制；对话经服务端执行已授权工具。
 
-
 - **导入进度**：session / tdata / 字符串导入使用 NDJSON 流式进度，界面显示当前序号与结果。
 - **二验**：状态查询（含是否绑定辅助邮箱）、发起/取消官方 2FA 重置；支持单号与多选。
 - **导出 tdata**：真 Desktop 目录；缺 `opentele` 时可在界面一键安装。
 - **ZIP 工具**：拆包、合并、注册时间、转 API、**格式互转**（session↔tdata）、**Passkey 创建**。
+- **批量改姓名/简介**：账号列表勾选后，在批量栏点「改姓名/简介」，一次给多个号设置对外可见的 first/last name 与 about；支持 `{甲|乙}` 变体语法，每个号随机取一条，避免资料完全相同被判重。工具箱里对应 `profile_set`，AI 侧对应 `batch_update_profile`。
+- **桌面观感界面**：左侧固定导航栏 + 浅/深主题切换（跟随本地保存的偏好），也可整体作为桌面客户端运行，见下节「桌面客户端」。
 - **热重载**：顶栏按钮真实重启后端进程（`os.execv`），不是刷新页面。
 - **错误日志**：服务端异常 / 5xx / 前端报错写入 SQLite + `data/errors.log`，可导出 JSON 上报。
 
 `TAM_FRONTEND=both` 时网页与机器人共享配置与数据目录，但 **Telegram 账号库仅网页/API 使用**；机器人仍以临时号包为主。
+
+### 桌面客户端（Electron，`desktop/`）
+
+把网页控制台装进原生桌面窗口，并由客户端自动接管 Python 后端：
+
+```bash
+cd desktop
+npm install      # 首次
+npm start        # 启动桌面客户端
+npm run dev      # 带 DevTools
+npm run dist     # 打 Windows NSIS 安装包（desktop/dist/）
+```
+
+- 启动时先探测 `127.0.0.1:8848`：已有服务就直接连过去，没有才拉起 `python -m tam.run`，等就绪后加载控制台。
+- 关窗时，若后端是本客户端拉起的，会连同子进程一起结束。
+- 覆盖项：`TAO_PYTHON`（解释器）、`TAO_PORT`、`TAO_BACKEND_ARGS`、`TAO_ROOT`。
+- 壳不含业务逻辑；改功能仍改 `tam/` 与 `tam/web/`。**改完必须完全重启**，见 `AGENTS.md`。
 
 ### 机器人功能（菜单、命令两种用法都行）
 

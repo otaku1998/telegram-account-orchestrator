@@ -321,6 +321,41 @@ async def _update_profile(ctx: ToolContext, account_id: int, first_name: str | N
     return await ctx.mgr.update_profile(account_id, first_name, last_name, about)
 
 
+@tool("batch_update_profile", "批量修改多个账号的姓名与个人简介（对外可见）", "destructive",
+      {"properties": {
+          "account_ids": _prop(type="array", items={"type": "integer"},
+                               description="要修改的账号 ID 列表；给了 tag 时作为可选项"),
+          "tag": _prop(type="string", description="按标签选号（与 account_ids 二选一）"),
+          "first_name": _prop(type="string", description="名（first name），留空不改"),
+          "last_name": _prop(type="string", description="姓（last name），留空不改"),
+          "about": _prop(type="string", description="个人简介（about），留空不改"),
+          "spintax": _prop(type="boolean", description="是否对文本启用 {a|b} 变体",
+                           default=True),
+          "confirm": CONFIRM},
+       "required": []})
+async def _batch_update_profile(ctx: ToolContext, account_ids: list[int] | None = None,
+                                tag: str | None = None, first_name: str | None = None,
+                                last_name: str | None = None, about: str | None = None,
+                                spintax: bool = True, confirm: bool = False) -> Any:
+    ids = account_ids or [a.id for a in ctx.db.list(tag=tag) if a.id]
+    if not (first_name or last_name or about):
+        return {"ok": False, "error": "first_name / last_name / about 至少填一项"}
+    if ctx.dry_run or not confirm:
+        return {"executed": False, "reason": "dry_run" if ctx.dry_run else "confirm_required",
+                "preview": {"accounts": ids,
+                            "first_name": first_name, "last_name": last_name,
+                            "about": about, "spintax": bool(spintax)}}
+    from . import toolbox
+
+    params = {"first_name": first_name or "", "last_name": last_name or "",
+              "about": about or "", "spintax": bool(spintax)}
+
+    async def worker(acc_id: int) -> Any:
+        return await toolbox.run_op(ctx.mgr, acc_id, "profile_set", params)
+
+    return await ctx.mgr.run_batch(ids, worker)
+
+
 @tool("terminate_other_devices", "踢掉该账号除本会话外的所有登录", "destructive",
       {"properties": {"account_id": ID, "confirm": CONFIRM}, "required": ["account_id"]})
 async def _terminate(ctx: ToolContext, account_id: int, confirm: bool = False) -> Any:

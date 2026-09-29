@@ -34,4 +34,12 @@ unpack/
 .idea/
 .vscode/
 
+# UI 参考项目（cockpit-tools），仅本地参考，不进版本库
+reference-cockpit/
+
+# Electron 桌面客户端的依赖与构建产物
+desktop/node_modules/
+desktop/dist/
+desktop/out/
+
 # tam/web/index.html 是构建产物,但必须提交以便用户开箱即用

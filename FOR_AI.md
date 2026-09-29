@@ -456,6 +456,7 @@ ZIP 扩展：`POST /api/tools/convert`、`POST /api/tools/passkey`。二验工�
 | 筛活 / OKPay / 筛料 | `alive_check` / `okpay_balance` / `check_phones` | |
 | 通讯录 | `list_contacts` / `add_contact` / `delete_contact` / `contacts_clear` | |
 | 会话清理 / 防找回 | `dialogs_clear` / `profile_clear` | |
+| 资料修改（单个/批量） | `update_profile` / `batch_update_profile` | 改 first/last name 与 about；批量对应工具箱 `profile_set`，支持 `{a|b}` 变体 |
 | 媒体 | `send_media` / `download_media` | 路径限制在 `data/` 内；单文件 ≤50MB |
 | 频道 | `create_channel` | 可设公开 username |
 | 用户名 | `set_username` | 空=清除 |

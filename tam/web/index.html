@@ -8,23 +8,83 @@
 <meta property="og:title" content="Telegram Account Orchestrator (TAO)" />
 <meta property="og:description" content="Self-hosted Telegram account manager and orchestration toolkit." />
 <style>
+  /* ============================================================
+     主题令牌（参考 cockpit-tools 的桌面风格）
+     浅色为默认；html[data-theme="dark"] 覆盖为深色。
+     ============================================================ */
   :root{
-    --text:#2C2C2B; --muted:#7D7A75; --canvas:#FFFFFF; --soft:#F9F8F7;
-    --surface:#F0EFED; --border:#E6E5E3; --blue:#2783DE; --blue-soft:#E5F2FC;
-    --green:#46A171; --green-soft:#E8F1EC; --orange:#D5803B; --orange-soft:#FBEBDE;
-    --red:#E56458; --red-soft:#FCE9E7;
+    --text:#111827; --muted:#6b7280; --canvas:#FFFFFF; --soft:#F6F7F9;
+    --surface:#EEF0F3; --surface2:#EEF0F3; --border:#E3E6EA; --line:#EDEFF2;
+    --blue:#3B82F6; --blue-soft:#E8F1FE;
+    --green:#10B981; --green-soft:#E7F7F0; --orange:#F59E0B; --orange-soft:#FDF3E3;
+    --red:#EF4444; --red-soft:#FDECEC;
+    --accent:#3B82F6; --accent-fg:#ffffff;
+    /* 侧栏（两种主题都保持深色，形成桌面应用的框架感） */
+    --rail:#141824; --rail-2:#1C2130; --rail-border:#262c3d;
+    --rail-text:#AEB6C7; --rail-text-on:#FFFFFF; --rail-active:#25304a;
+    --topbar:#ffffff;
+    --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+    --shadow-md:0 6px 20px rgba(16,24,40,.08);
+    --shadow-lg:0 14px 40px rgba(16,24,40,.16);
+    --radius:12px; --radius-sm:8px;
+  }
+  html[data-theme="dark"]{
+    --text:#E5E9F0; --muted:#9AA4B6; --canvas:#171A21; --soft:#12151B;
+    --surface:#222733; --surface2:#222733; --border:#2C3342; --line:#242a36;
+    --blue:#60A5FA; --blue-soft:#1E2B44;
+    --green:#34D399; --green-soft:#12291f; --orange:#FBBF24; --orange-soft:#2a2213;
+    --red:#F87171; --red-soft:#2a1617;
+    --accent:#3B82F6;
+    --topbar:#1B1F27;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.35);
+    --shadow-md:0 6px 20px rgba(0,0,0,.4);
+    --shadow-lg:0 14px 40px rgba(0,0,0,.55);
   }
   *{box-sizing:border-box}
-  body{margin:0;overflow-x:hidden;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);background:var(--soft)}
-  header{background:var(--canvas);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:30}
-  header h1{font-size:17px;margin:0;font-weight:600;display:flex;align-items:center;gap:8px}
+  html,body{height:100%}
+  body{margin:0;overflow-x:hidden;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);background:var(--soft)}
+  body.theme-anim,body.theme-anim *{transition:background-color .18s ease,color .18s ease,border-color .18s ease}
+
+  /* ---------- 桌面侧栏 ---------- */
+  .sidebar{
+    position:fixed;left:0;top:0;bottom:0;width:224px;z-index:45;
+    background:var(--rail);border-right:1px solid var(--rail-border);
+    display:flex;flex-direction:column;padding:14px 12px;overflow-y:auto;
+  }
+  .sidebar .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 16px;color:#fff}
+  .sidebar .brand .logo{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+    background:linear-gradient(145deg,#3B82F6,#2563EB);font-size:18px;flex:0 0 auto;box-shadow:0 4px 12px rgba(37,99,235,.4)}
+  .sidebar .brand .bt{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+  .sidebar .brand .bt b{font-size:14.5px;font-weight:650;letter-spacing:.02em}
+  .sidebar .brand .bt span{font-size:11px;color:var(--rail-text)}
+  .sidebar .navg{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#6b7488;padding:12px 10px 6px}
+  .sidebar .nav{display:flex;flex-direction:column;gap:2px}
+  .sidebar .nav button{
+    display:flex;align-items:center;gap:10px;width:100%;min-height:38px;padding:8px 10px;
+    border:0;border-radius:9px;background:transparent;color:var(--rail-text);font:inherit;font-size:13.5px;
+    cursor:pointer;text-align:left;
+  }
+  .sidebar .nav button:hover{background:var(--rail-2);color:var(--rail-text-on)}
+  .sidebar .nav button.on{background:var(--rail-active);color:#fff}
+  .sidebar .nav button .ic{width:18px;text-align:center;font-size:15px;flex:0 0 auto}
+  .sidebar .foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--rail-border);display:flex;flex-direction:column;gap:6px}
+  .sidebar .foot .muted{color:#7b8497;font-size:11px;padding:0 10px}
+  .sidebar .themebtn{background:var(--rail-2);border:1px solid var(--rail-border);color:var(--rail-text);
+    display:flex;align-items:center;gap:8px;justify-content:flex-start}
+  .sidebar .themebtn:hover{color:#fff}
+  .navtoggle{display:none}
+
+  /* 内容区：为固定侧栏留出左边距 */
+  .app-main{margin-left:224px;min-height:100vh;display:flex;flex-direction:column}
+  header{background:var(--topbar);border-bottom:1px solid var(--border);padding:10px 22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:30}
+  header h1{font-size:16px;margin:0;font-weight:650;display:flex;align-items:center;gap:8px}
   header .sp{flex:1}
-  main{max-width:none;margin:0;padding:24px 28px}
+  main{max-width:none;margin:0;padding:20px 24px;flex:1}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
-  .stat{background:var(--canvas);border:1px solid var(--border);border-radius:8px;padding:16px}
+  .stat{background:var(--canvas);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-sm)}
   .stat b{display:block;font-size:28px;line-height:1.2}
   .stat span{color:var(--muted);font-size:14px}
-  .card{background:var(--canvas);border:1px solid var(--border);border-radius:8px;margin-bottom:24px;overflow:hidden;box-sizing:border-box}
+  .card{background:var(--canvas);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:24px;overflow:hidden;box-sizing:border-box;box-shadow:var(--shadow-sm)}
   .card h2,.card h3{font-size:15px;margin:0;padding:12px 16px;border-bottom:1px solid var(--border);font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;box-sizing:border-box;min-width:0}
   .card h3 .muted,.card h2 .muted{font-weight:500}
   .card .body{padding:16px}
@@ -91,7 +151,7 @@ tbody tr.sel{background:var(--blue-soft)}
   .pill{font-size:12px;padding:3px 10px;border-radius:999px;background:var(--green-soft);color:#2f6f4d}
   .pill.ro{background:var(--orange-soft);color:#8a5220}
   .pill.off{background:var(--red-soft);color:#a13f36}
-  .bulk{display:none;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 16px;background:var(--blue-soft);border-bottom:1px solid #cfe4f7}
+  .bulk{display:none;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 16px;background:var(--blue-soft);border-bottom:1px solid var(--border)}
   .bulk.on{display:flex}
   pre{margin:0;padding:14px;background:#191919;color:#eee;font:12.5px/1.6 Menlo,Consolas,monospace;max-height:420px;min-height:220px;overflow:auto}
   .logs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -148,7 +208,7 @@ tbody tr.sel{background:var(--blue-soft)}
   .help-main p,.help-main li{font-size:13.5px;line-height:1.6;color:var(--text)}
   .help-main ul{margin:4px 0 8px;padding-left:1.25em}
   .help-main code{font:12px/1.4 Menlo,Consolas,monospace;background:var(--surface);padding:1px 5px;border-radius:4px}
-  .help-main .tip{background:var(--blue-soft);border:1px solid #cfe4f7;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:13px}
+  .help-main .tip{background:var(--blue-soft);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin:8px 0;font-size:13px}
   .help-main table{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0 10px}
   .help-main th,.help-main td{border:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top}
   .help-main th{background:var(--soft)}
@@ -214,6 +274,12 @@ tbody tr.sel{background:var(--blue-soft)}
   @media (prefers-reduced-motion:reduce){body.editing .board>[data-widget]>.inner{animation:none}
     .board>[data-widget]{transition:none}}
   @media (max-width:720px){main{padding:16px}header{padding:10px 16px}th,td{padding:8px}.hide-s{display:none}}
+  @media (max-width:900px){
+    .sidebar{transform:translateX(-100%);transition:transform .2s ease}
+    body.nav-open .sidebar{transform:none}
+    .app-main{margin-left:0}
+    .navtoggle{display:inline-flex}
+  }
 
 .taskrow{padding:10px 0;border-bottom:1px solid var(--line)}
 .taskrow:last-child{border-bottom:0}
@@ -443,7 +509,36 @@ tbody tr.sel{background:var(--blue-soft)}
 </style>
 </head>
 <body>
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo">✈️</div>
+    <div class="bt"><b>Telegram 账号管理器</b><span>Telegram Account Orchestrator</span></div>
+  </div>
+  <div class="navg">控制台</div>
+  <nav class="nav" id="nav">
+    <button class="on" data-nav="overview" onclick="navTo('overview')"><span class="ic">▤</span> 总览</button>
+    <button data-nav="accounts" onclick="navTo('accounts')"><span class="ic">👤</span> 账号管理</button>
+    <button data-nav="toolbox" onclick="navTo('toolbox')"><span class="ic">🧰</span> 工具箱</button>
+    <button data-nav="ziptools" onclick="navTo('ziptools')"><span class="ic">🗜️</span> ZIP 工具</button>
+    <button data-nav="tasks" onclick="navTo('tasks')"><span class="ic">📋</span> 任务中心</button>
+    <button data-nav="leads" onclick="navTo('leads')"><span class="ic">🎯</span> 线索库</button>
+    <button data-nav="logs" onclick="navTo('logs')"><span class="ic">📜</span> 日志</button>
+    <button data-nav="settings" onclick="navTo('settings')"><span class="ic">⚙️</span> 参数设置</button>
+  </nav>
+  <div class="navg">工具</div>
+  <nav class="nav">
+    <button onclick="runDoctor()"><span class="ic">🩺</span> 一键体检</button>
+    <button onclick="openAiPanel()"><span class="ic">✦</span> AI 助手</button>
+    <button onclick="openHelp()"><span class="ic">❓</span> 帮助</button>
+  </nav>
+  <div class="foot">
+    <button class="themebtn" onclick="toggleTheme()"><span class="ic" id="themeIcon">🌙</span> <span id="themeLabel">深色模式</span></button>
+    <div class="muted">TAO · 自托管</div>
+  </div>
+</aside>
+<div class="app-main" id="appMain">
 <header>
+  <button class="fit navtoggle" onclick="document.body.classList.toggle('nav-open')" title="菜单">☰</button>
   <h1>✈️ Telegram 账号管理器 <span class="pill" id="mode">完整权限</span></h1>
   <span class="sp"></span>
   <input id="token" placeholder="访问令牌（免令牌模式留空）" style="max-width:230px" />
@@ -452,6 +547,7 @@ tbody tr.sel{background:var(--blue-soft)}
   <button class="fit write" onclick="hotReload()" title="真实重启后端进程（热重载），进行中的任务会中断">热重载</button>
   <button class="fit" onclick="openAiPanel()" title="AI 对话与权限配置">AI 助手</button>
   <button class="fit" onclick="openErrorLog()" title="服务端与前端错误日志，可导出上报">错误日志</button>
+  <button class="fit" onclick="toggleTheme()" id="themeBtnTop" title="切换浅色 / 深色主题">🌙</button>
   <button class="fit" id="editBtn" onclick="toggleEdit()" title="拖动移位置、拖边缘改大小、点右上角 × 隐藏">编辑布局</button>
   <button class="fit" onclick="openHelp()" title="功能说明与使用文档">帮助</button>
   <button class="fit" onclick="refresh()">刷新</button>
@@ -495,6 +591,7 @@ tbody tr.sel{background:var(--blue-soft)}
       <button class="sm write" onclick="bulkOkpay()">OKPay余额</button>
       <button class="sm write" onclick="bulkTerminate()">踢出设备</button>
       <button class="sm write" onclick="bulkTag()">打标签</button>
+      <button class="sm write" onclick="openProfileModal()">改姓名/简介</button>
       <button class="sm write" onclick="bulkExport('pack')">导出号包</button>
       <button class="sm write" onclick="bulkExport('session')">导出.session</button>
       <button class="sm danger write" onclick="bulkRegen()">重生会话</button>
@@ -697,6 +794,7 @@ tbody tr.sel{background:var(--blue-soft)}
     <input type="file" id="layFile" accept="application/json,.json" style="display:none" />
   </div>
 </main>
+</div>
 
 
 <!-- 帮助文档 -->
@@ -740,7 +838,7 @@ tbody tr.sel{background:var(--blue-soft)}
         <h4 id="h-accounts">账号管理</h4>
         <ul>
           <li><strong>添加账号</strong>：别名、手机号、代理、标签、取码链接等。</li>
-          <li><strong>勾选 + 批量栏</strong>：健康检查、自动登录、发消息、养号、代理体检、OKPay 余额、踢设备、打标签、导出、重生会话、删除等。</li>
+          <li><strong>勾选 + 批量栏</strong>：健康检查、自动登录、发消息、养号、代理体检、OKPay 余额、踢设备、打标签、<strong>改姓名/简介</strong>、导出、重生会话、删除等。</li>
           <li><strong>点开一行</strong>：资料、健康检查、限制检测、设备/会话、登录、清设备、导出、重生、二验状态/重置、退出、删除。</li>
           <li>状态：active 正常、restricted 受限、banned 封禁、unauthorized 未登录/失效等。</li>
           <li>批量操作有<strong>真实进度</strong>（完成数/成功/失败/当前号）；并行与超时见参数面板。</li>
@@ -800,7 +898,8 @@ tbody tr.sel{background:var(--blue-soft)}
         </ul>
 
         <h4 id="h-tools">工具箱</h4>
-        <p>对<strong>库内已选账号</strong>批量执行：筛活、限制检测、隐私、筛料、改二验、二验状态/重置、清通讯录/会话、防找回清理、<strong>屏蔽/取消屏蔽用户</strong>、搜索公开群、加群、成员列表、读群消息、踢设备等。危险项会确认。</p>
+          <p>对<strong>库内已选账号</strong>批量执行：筛活、限制检测、隐私、筛料、改二验、二验状态/重置、清通讯录/会话、防找回清理、<strong>改姓名/简介</strong>、<strong>屏蔽/取消屏蔽用户</strong>、搜索公开群、加群、成员列表、读群消息、踢设备等。危险项会确认。</p>
+          <div class="tip">「改姓名/简介」也可在账号列表顶部的批量栏直接点开：一次给多个号设置对外可见的 first/last name 与 about，留空即不改动；支持 <code>{甲|乙}</code> 变体语法，每个号随机取一条，避免资料完全相同被判重。</div>
 
         <h4 id="h-zip">ZIP 工具（不碰库内号）</h4>
         <ul>
@@ -1064,6 +1163,24 @@ tbody tr.sel{background:var(--blue-soft)}
     <button class="sm write" type="button" onclick="qrLoginRefresh()">刷新二维码</button>
     <button class="primary write" type="button" id="qrSubmitPass" style="display:none" onclick="qrLoginSubmitPass()">提交密码</button>
   </div>
+</div>
+
+<!-- 批量修改姓名与简介 -->
+<div class="modal" id="mProfile">
+  <h3>批量修改姓名与个人简介 <span class="muted" id="pWho"></span></h3>
+  <div class="body">
+    <p class="muted">对勾选的账号批量修改<strong>对外可见</strong>的姓名与个人简介。留空的项不会改动。支持 <code>{甲|乙}</code> 变体语法，每个号随机取一条，避免资料完全相同。</p>
+    <label class="f"><span>名（first name）</span><input id="pFirst" placeholder="例如：{Alex|Sam|Chris}" /></label>
+    <label class="f"><span>姓（last name，可选）</span><input id="pLast" placeholder="例如：Taylor" /></label>
+    <label class="f"><span>个人简介（about，最多 255 字）</span><textarea id="pAbout" style="min-height:90px;font-family:inherit;font-size:14px" placeholder="例如：Crypto enthusiast · {web3|web4}" oninput="pPreview()"></textarea></label>
+    <div class="row" style="gap:8px;align-items:center">
+      <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="pSpin" checked style="width:16px;min-height:0" /> 启用变体</label>
+      <span class="sp" style="flex:1"></span>
+      <span class="muted" id="pSpinN">变体数 1</span>
+    </div>
+    <pre id="pSpinPrev" class="muted" style="white-space:pre-wrap;margin:8px 0 0;max-height:120px;min-height:0"></pre>
+  </div>
+  <div class="foot"><button onclick="closeAll()">取消</button><button class="primary write" onclick="bulkProfile()">开始修改</button></div>
 </div>
 
 <!-- 发消息 -->
@@ -4298,6 +4415,53 @@ async function bulkTag() {
   refresh();
 }
 
+let pSpinTimer = null;
+function openProfileModal() {
+  if (!sel.size) { toast('请先勾选账号', 'err'); return; }
+  const who = $('#pWho');
+  if (who) who.textContent = '已选 ' + sel.size + ' 个';
+  openModal('mProfile');
+}
+
+function pPreview() {
+  clearTimeout(pSpinTimer);
+  pSpinTimer = setTimeout(async () => {
+    const text = $('#pAbout').value;
+    if (!text.includes('{')) { $('#pSpinN').textContent = '变体数 1'; $('#pSpinPrev').textContent = ''; return; }
+    try {
+      const r = await api('/api/spintax/preview', {method:'POST', body: JSON.stringify({text})});
+      if (!r.ok) { $('#pSpinN').textContent = '语法错误'; $('#pSpinPrev').textContent = r.error || ''; return; }
+      $('#pSpinN').textContent = `变体数 ${r.variants}`;
+      $('#pSpinPrev').textContent = (r.preview || []).join('\n') + (r.warning ? '\n⚠ ' + r.warning : '');
+    } catch (e) { $('#pSpinN').textContent = '预览失败'; }
+  }, 400);
+}
+
+async function bulkProfile() {
+  const ids = [...sel];
+  if (!ids.length) { toast('请先勾选账号', 'err'); return; }
+  const first_name = $('#pFirst').value.trim();
+  const last_name = $('#pLast').value.trim();
+  const about = $('#pAbout').value.trim();
+  if (!first_name && !last_name && !about) { toast('姓名和简介至少填一项', 'err'); return; }
+  if (ids.length > 1 && !await uiConfirm({
+    title: '批量修改资料',
+    message: '将修改这 ' + ids.length + ' 个账号对外可见的姓名 / 简介。\n该操作会立即生效，其它人可见。确认继续？',
+  })) return;
+  const params = {first_name, last_name, about, spintax: $('#pSpin').checked};
+  try {
+    const r = await api('/api/toolbox/profile_set/batch', {
+      method: 'POST',
+      body: JSON.stringify({account_ids: ids, params, concurrency: batchConc(5)}),
+    });
+    closeAll();
+    out(r, true);
+    toast('资料修改完成 · 成功 ' + r.ok + ' / 共 ' + r.total + (r.failed ? '，失败 ' + r.failed : ''),
+          r.failed ? 'err' : 'ok');
+    refresh();
+  } catch (e) { toast('修改失败：' + e.message, 'err'); }
+}
+
 async function deleteTelegram(id) {
   if (!await uiConfirmDanger({
     title: '注销 Telegram 账号',
@@ -4615,6 +4779,50 @@ if (DEMO) {
   probeMode();
   refresh();
 }
+/* ---------- 桌面外壳：侧栏导航 + 主题 ---------- */
+const themeKey = 'tam.theme';
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  const dark = t === 'dark';
+  const icon = $('#themeIcon'); if (icon) icon.textContent = dark ? '☀️' : '🌙';
+  const label = $('#themeLabel'); if (label) label.textContent = dark ? '浅色模式' : '深色模式';
+  const top = $('#themeBtnTop'); if (top) top.textContent = dark ? '☀️' : '🌙';
+}
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem(themeKey, next); } catch (e) {}
+  applyTheme(next);
+}
+(function initTheme() {
+  let t = 'light';
+  try { t = localStorage.getItem(themeKey) || 'light'; } catch (e) {}
+  applyTheme(t);
+})();
+
+/** 侧栏导航：把画板上对应的控件滚动到可视区。 */
+function navTo(widget) {
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.nav === widget));
+  const el = document.querySelector('[data-widget="' + widget + '"]');
+  if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+  if (widget === 'toolbox') loadOps();
+  if (widget === 'ziptools') renderZt();
+  if (widget === 'settings') loadSettings();
+  if (widget === 'tasks') loadTasks();
+  if (widget === 'leads') loadLeads();
+}
+window.addEventListener('scroll', () => {
+  if (document.body.classList.contains('editing')) return;
+  const cards = [...document.querySelectorAll('.board > [data-widget]:not(.whidden)')];
+  let cur = cards[0];
+  const y = window.scrollY + 140;
+  for (const c of cards) { if (c.offsetTop <= y) cur = c; }
+  if (!cur) return;
+  const k = cur.dataset.widget;
+  const map = {accounts: 'accounts', toolbox: 'toolbox', ziptools: 'ziptools', tasks: 'tasks', leads: 'leads', logText: 'logs', logJson: 'logs', settings: 'settings'};
+  const nav = map[k];
+  if (nav) document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.nav === nav));
+}, {passive: true});
+
 /* ---------- 工具箱：把 GAF 那批功能直接作用于库里选中的号 ---------- */
 /* 字段全靠 /api/toolbox/ops 下发的 OP_SPECS 动态渲染，后端加新 op 前端一行都不用改 */
 let TB_OPS = [];

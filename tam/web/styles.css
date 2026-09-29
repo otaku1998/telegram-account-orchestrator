@@ -1,20 +1,80 @@
+  /* ============================================================
+     主题令牌（参考 cockpit-tools 的桌面风格）
+     浅色为默认；html[data-theme="dark"] 覆盖为深色。
+     ============================================================ */
   :root{
-    --text:#2C2C2B; --muted:#7D7A75; --canvas:#FFFFFF; --soft:#F9F8F7;
-    --surface:#F0EFED; --border:#E6E5E3; --blue:#2783DE; --blue-soft:#E5F2FC;
-    --green:#46A171; --green-soft:#E8F1EC; --orange:#D5803B; --orange-soft:#FBEBDE;
-    --red:#E56458; --red-soft:#FCE9E7;
+    --text:#111827; --muted:#6b7280; --canvas:#FFFFFF; --soft:#F6F7F9;
+    --surface:#EEF0F3; --surface2:#EEF0F3; --border:#E3E6EA; --line:#EDEFF2;
+    --blue:#3B82F6; --blue-soft:#E8F1FE;
+    --green:#10B981; --green-soft:#E7F7F0; --orange:#F59E0B; --orange-soft:#FDF3E3;
+    --red:#EF4444; --red-soft:#FDECEC;
+    --accent:#3B82F6; --accent-fg:#ffffff;
+    /* 侧栏（两种主题都保持深色，形成桌面应用的框架感） */
+    --rail:#141824; --rail-2:#1C2130; --rail-border:#262c3d;
+    --rail-text:#AEB6C7; --rail-text-on:#FFFFFF; --rail-active:#25304a;
+    --topbar:#ffffff;
+    --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+    --shadow-md:0 6px 20px rgba(16,24,40,.08);
+    --shadow-lg:0 14px 40px rgba(16,24,40,.16);
+    --radius:12px; --radius-sm:8px;
+  }
+  html[data-theme="dark"]{
+    --text:#E5E9F0; --muted:#9AA4B6; --canvas:#171A21; --soft:#12151B;
+    --surface:#222733; --surface2:#222733; --border:#2C3342; --line:#242a36;
+    --blue:#60A5FA; --blue-soft:#1E2B44;
+    --green:#34D399; --green-soft:#12291f; --orange:#FBBF24; --orange-soft:#2a2213;
+    --red:#F87171; --red-soft:#2a1617;
+    --accent:#3B82F6;
+    --topbar:#1B1F27;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.35);
+    --shadow-md:0 6px 20px rgba(0,0,0,.4);
+    --shadow-lg:0 14px 40px rgba(0,0,0,.55);
   }
   *{box-sizing:border-box}
-  body{margin:0;overflow-x:hidden;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);background:var(--soft)}
-  header{background:var(--canvas);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:30}
-  header h1{font-size:17px;margin:0;font-weight:600;display:flex;align-items:center;gap:8px}
+  html,body{height:100%}
+  body{margin:0;overflow-x:hidden;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);background:var(--soft)}
+  body.theme-anim,body.theme-anim *{transition:background-color .18s ease,color .18s ease,border-color .18s ease}
+
+  /* ---------- 桌面侧栏 ---------- */
+  .sidebar{
+    position:fixed;left:0;top:0;bottom:0;width:224px;z-index:45;
+    background:var(--rail);border-right:1px solid var(--rail-border);
+    display:flex;flex-direction:column;padding:14px 12px;overflow-y:auto;
+  }
+  .sidebar .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 16px;color:#fff}
+  .sidebar .brand .logo{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+    background:linear-gradient(145deg,#3B82F6,#2563EB);font-size:18px;flex:0 0 auto;box-shadow:0 4px 12px rgba(37,99,235,.4)}
+  .sidebar .brand .bt{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+  .sidebar .brand .bt b{font-size:14.5px;font-weight:650;letter-spacing:.02em}
+  .sidebar .brand .bt span{font-size:11px;color:var(--rail-text)}
+  .sidebar .navg{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#6b7488;padding:12px 10px 6px}
+  .sidebar .nav{display:flex;flex-direction:column;gap:2px}
+  .sidebar .nav button{
+    display:flex;align-items:center;gap:10px;width:100%;min-height:38px;padding:8px 10px;
+    border:0;border-radius:9px;background:transparent;color:var(--rail-text);font:inherit;font-size:13.5px;
+    cursor:pointer;text-align:left;
+  }
+  .sidebar .nav button:hover{background:var(--rail-2);color:var(--rail-text-on)}
+  .sidebar .nav button.on{background:var(--rail-active);color:#fff}
+  .sidebar .nav button .ic{width:18px;text-align:center;font-size:15px;flex:0 0 auto}
+  .sidebar .foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--rail-border);display:flex;flex-direction:column;gap:6px}
+  .sidebar .foot .muted{color:#7b8497;font-size:11px;padding:0 10px}
+  .sidebar .themebtn{background:var(--rail-2);border:1px solid var(--rail-border);color:var(--rail-text);
+    display:flex;align-items:center;gap:8px;justify-content:flex-start}
+  .sidebar .themebtn:hover{color:#fff}
+  .navtoggle{display:none}
+
+  /* 内容区：为固定侧栏留出左边距 */
+  .app-main{margin-left:224px;min-height:100vh;display:flex;flex-direction:column}
+  header{background:var(--topbar);border-bottom:1px solid var(--border);padding:10px 22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:30}
+  header h1{font-size:16px;margin:0;font-weight:650;display:flex;align-items:center;gap:8px}
   header .sp{flex:1}
-  main{max-width:none;margin:0;padding:24px 28px}
+  main{max-width:none;margin:0;padding:20px 24px;flex:1}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
-  .stat{background:var(--canvas);border:1px solid var(--border);border-radius:8px;padding:16px}
+  .stat{background:var(--canvas);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-sm)}
   .stat b{display:block;font-size:28px;line-height:1.2}
   .stat span{color:var(--muted);font-size:14px}
-  .card{background:var(--canvas);border:1px solid var(--border);border-radius:8px;margin-bottom:24px;overflow:hidden;box-sizing:border-box}
+  .card{background:var(--canvas);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:24px;overflow:hidden;box-sizing:border-box;box-shadow:var(--shadow-sm)}
   .card h2,.card h3{font-size:15px;margin:0;padding:12px 16px;border-bottom:1px solid var(--border);font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;box-sizing:border-box;min-width:0}
   .card h3 .muted,.card h2 .muted{font-weight:500}
   .card .body{padding:16px}
@@ -81,7 +141,7 @@ tbody tr.sel{background:var(--blue-soft)}
   .pill{font-size:12px;padding:3px 10px;border-radius:999px;background:var(--green-soft);color:#2f6f4d}
   .pill.ro{background:var(--orange-soft);color:#8a5220}
   .pill.off{background:var(--red-soft);color:#a13f36}
-  .bulk{display:none;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 16px;background:var(--blue-soft);border-bottom:1px solid #cfe4f7}
+  .bulk{display:none;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 16px;background:var(--blue-soft);border-bottom:1px solid var(--border)}
   .bulk.on{display:flex}
   pre{margin:0;padding:14px;background:#191919;color:#eee;font:12.5px/1.6 Menlo,Consolas,monospace;max-height:420px;min-height:220px;overflow:auto}
   .logs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -138,7 +198,7 @@ tbody tr.sel{background:var(--blue-soft)}
   .help-main p,.help-main li{font-size:13.5px;line-height:1.6;color:var(--text)}
   .help-main ul{margin:4px 0 8px;padding-left:1.25em}
   .help-main code{font:12px/1.4 Menlo,Consolas,monospace;background:var(--surface);padding:1px 5px;border-radius:4px}
-  .help-main .tip{background:var(--blue-soft);border:1px solid #cfe4f7;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:13px}
+  .help-main .tip{background:var(--blue-soft);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin:8px 0;font-size:13px}
   .help-main table{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0 10px}
   .help-main th,.help-main td{border:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top}
   .help-main th{background:var(--soft)}
@@ -204,6 +264,12 @@ tbody tr.sel{background:var(--blue-soft)}
   @media (prefers-reduced-motion:reduce){body.editing .board>[data-widget]>.inner{animation:none}
     .board>[data-widget]{transition:none}}
   @media (max-width:720px){main{padding:16px}header{padding:10px 16px}th,td{padding:8px}.hide-s{display:none}}
+  @media (max-width:900px){
+    .sidebar{transform:translateX(-100%);transition:transform .2s ease}
+    body.nav-open .sidebar{transform:none}
+    .app-main{margin-left:0}
+    .navtoggle{display:inline-flex}
+  }
 
 .taskrow{padding:10px 0;border-bottom:1px solid var(--line)}
 .taskrow:last-child{border-bottom:0}
