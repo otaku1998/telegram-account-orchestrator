@@ -515,14 +515,22 @@ python -m tam.cli serve                    # 只跑网页（老命令，没变�
 ```bash
 cd desktop
 npm install      # 首次
-npm start        # 启动桌面客户端
+npm start        # 启动桌面客户端（开发模式，用系统/venv 的 Python 跑后端）
 npm run dev      # 带 DevTools
-npm run dist     # 打 Windows NSIS 安装包（desktop/dist/）
+npm run backend:build   # 先用 PyInstaller 打出内置后端 dist/TAO-Backend/
+npm run dist     # 打免安装绿色版单文件 TAO-Portable-<版本>.exe（desktop/dist/）
 ```
 
-- 启动时先探测 `127.0.0.1:8848`：已有服务就直接连过去，没有才拉起 `python -m tam.run`，等就绪后加载控制台。
+**绿色版（推荐给最终用户）**：`npm run dist` 产出的 `TAO-Portable-*.exe` 已内置
+Python 后端（`TAO-Backend.exe`），**用户无需安装 Python / pip**。双击即用：
+首次运行会在 exe 同级生成 `.env`（含随机主密钥）与 `data/`，数据与程序放在一起，
+整个文件夹拷走即迁移。若 exe 所在目录不可写（如放在只读盘/Program Files），
+自动回退到用户数据目录，端口通过 `TAO_PORT` 覆盖。
+
+- 启动时先探测 `127.0.0.1:8848`：已有服务就直接连过去，没有才拉起后端，等就绪后加载控制台。
 - 关窗时，若后端是本客户端拉起的，会连同子进程一起结束。
-- 覆盖项：`TAO_PYTHON`（解释器）、`TAO_PORT`、`TAO_BACKEND_ARGS`、`TAO_ROOT`。
+- 覆盖项：`TAO_PYTHON`（开发模式解释器）、`TAO_BACKEND_EXE`（打包后端路径）、
+  `TAO_PORT`、`TAO_BACKEND_ARGS`、`TAO_ROOT`（开发模式）、`TAO_DATA_DIR`（数据目录）。
 - 壳不含业务逻辑；改功能仍改 `tam/` 与 `tam/web/`。**改完必须完全重启**，见 `AGENTS.md`。
 
 ### 机器人功能（菜单、命令两种用法都行）

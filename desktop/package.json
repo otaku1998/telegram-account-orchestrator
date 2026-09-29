@@ -9,7 +9,8 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "dist": "electron-builder --win nsis",
+    "backend:build": "cd .. && .venv\\Scripts\\python.exe -m PyInstaller packaging\\tao-backend.spec --noconfirm --distpath dist --workpath build\\pyi --clean",
+    "dist": "electron-builder --win portable",
     "dist:dir": "electron-builder --dir"
   },
   "devDependencies": {
@@ -24,15 +25,30 @@
       "preload.js",
       "assets/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "../dist/TAO-Backend",
+        "to": "backend",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../tam/assets/tao-icon.png",
+        "to": "tao-icon.png"
+      }
+    ],
     "win": {
       "target": [
-        "nsis"
-      ]
+        "portable"
+      ],
+      "icon": "build/icon.ico"
     },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "perMachine": false
+    "portable": {
+      "artifactName": "TAO-Portable-${version}.exe",
+      "requestExecutionLevel": "user"
+    },
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
     }
   }
 }

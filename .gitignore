@@ -42,4 +42,8 @@ desktop/node_modules/
 desktop/dist/
 desktop/out/
 
+# 但打包资源（图标等）要进版本库，覆盖上面的 build/ 全局忽略
+!desktop/build/
+!desktop/build/**
+
 # tam/web/index.html 是构建产物,但必须提交以便用户开箱即用

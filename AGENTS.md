@@ -70,11 +70,15 @@ cd desktop; npm start              # Electron 桌面客户端
 
 ## 4. 桌面客户端（`desktop/`）
 
-- Electron 壳，启动后自动拉起 Python 后端（`python -m tam.run`），
-  再把网页控制台装进原生窗口；窗口关闭时一并结束后端。
-- 开发：`cd desktop && npm install && npm start`
-- 打包：`cd desktop && npm run dist`（Windows 出 NSIS 安装包）
-- 后端可执行/解释器路径通过环境变量覆盖：`TAO_PYTHON`、`TAO_BACKEND_ARGS`、`TAO_PORT`。
+- Electron 壳，启动后自动拉起后端，再把网页控制台装进原生窗口；
+  窗口关闭时一并结束后端。
+- 开发：`cd desktop && npm install && npm start`（用系统/venv 的 Python 跑 `-m tam.run`）
+- 打包绿色版：先 `npm run backend:build`（PyInstaller 打出内置 `dist/TAO-Backend/`），
+  再 `npm run dist`（Windows 出免安装单文件 `TAO-Portable-<版本>.exe`，
+  内含后端，用户无需装 Python）。产物在 `desktop/dist/`。
+- 绿色版首次运行在 exe 同级生成 `.env`（随机主密钥）+ `data/`；exe 目录不可写时回退用户数据目录。
+- 后端可执行/解释器路径等通过环境变量覆盖：`TAO_PYTHON`、`TAO_BACKEND_EXE`、
+  `TAO_PORT`、`TAO_BACKEND_ARGS`、`TAO_ROOT`、`TAO_DATA_DIR`。
 - 桌面客户端只是壳；**业务与 UI 都在 `tam/`**，改功能请改 Python / 网页前端，
   不要在桌面壳里重复实现。
 
